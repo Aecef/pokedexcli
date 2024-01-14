@@ -4,6 +4,7 @@ import (
 	"github.com/aecef/pokedexcli/internal/pokeapi"
 	"os"
 	"fmt"
+	"log"
 )
 
 type cliCommand struct {
@@ -26,13 +27,13 @@ func getCommands() map[string]cliCommand {
 		},
 		"map": {
 			name:        "map",
-			description: "Shows the map",
-			callback:    pokeapi.CommandMap,
+			description: "Displays the next 20 location areas from the pokeapi",
+			callback:    commandMap,
 		},
 		"mapb": {
 			name:        "mapb",
-			description: "Shows the map",
-			callback:    pokeapi.CommandMapb,
+			description: "Displays the previous 20 location areas from the pokeapi",
+			callback:    commandMapb,
 		},
 	}
 	return commands
@@ -46,5 +47,41 @@ func commandHelp() error {
 }
 func commandExit() error {
 	os.Exit(0)
+	return nil
+}
+
+func commandMap() error {
+	pokeapiClient := pokeapi.NewClient()
+	resp, err := pokeapiClient.ListLocationAreas()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("=======================================")
+	fmt.Println("LocationAreas: ")
+	fmt.Println("=======================================")
+	for _, locationArea := range resp.Results {
+		fmt.Println(" - " + locationArea.Name)
+	}
+	fmt.Println("=======================================")
+
+	return nil
+}
+
+
+
+func commandMapb() error {
+	pokeapiClient := pokeapi.NewClient()
+	resp, err := pokeapiClient.ListLocationAreas()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("=======================================")
+	fmt.Println("LocationAreas: ")
+	fmt.Println("=======================================")
+	for _, locationArea := range resp.Results {
+		fmt.Println(locationArea.Name)
+	}
+	fmt.Println("=======================================")
+
 	return nil
 }
