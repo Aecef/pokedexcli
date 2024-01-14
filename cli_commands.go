@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/aecef/pokedexcli/internal/pokeapi"
 	"os"
 	"fmt"
 	"log"
@@ -10,7 +9,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -39,20 +38,19 @@ func getCommands() map[string]cliCommand {
 	return commands
 }
 
-func commandHelp() error {
+func commandHelp(cfg *config) error {
 	fmt.Println("Available commands:")
 	fmt.Println("help - Shows this help message")
 	fmt.Println("exit - Exits the pokedex")
 	return nil
 }
-func commandExit() error {
+func commandExit(cfg *config) error {
 	os.Exit(0)
 	return nil
 }
 
-func commandMap() error {
-	pokeapiClient := pokeapi.NewClient()
-	resp, err := pokeapiClient.ListLocationAreas()
+func commandMap(cfg *config) error {
+	resp, err := cfg.pokeapiClient.ListLocationAreas(cfg.nextLocationURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,15 +61,13 @@ func commandMap() error {
 		fmt.Println(" - " + locationArea.Name)
 	}
 	fmt.Println("=======================================")
-
+	cfg.nextLocationURL = resp.Next
+	cfg.prevLocationURL = resp.Previous
 	return nil
 }
 
-
-
-func commandMapb() error {
-	pokeapiClient := pokeapi.NewClient()
-	resp, err := pokeapiClient.ListLocationAreas()
+func commandMapb(cfg *config) error {
+	resp, err := cfg.pokeapiClient.ListLocationAreas(cfg.prevLocationURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,9 +75,10 @@ func commandMapb() error {
 	fmt.Println("LocationAreas: ")
 	fmt.Println("=======================================")
 	for _, locationArea := range resp.Results {
-		fmt.Println(locationArea.Name)
+		fmt.Println(" - " + locationArea.Name)
 	}
 	fmt.Println("=======================================")
-
+	cfg.nextLocationURL = resp.Next
+	cfg.prevLocationURL = resp.Previous
 	return nil
 }

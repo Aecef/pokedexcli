@@ -8,7 +8,7 @@ import (
 )
 
 
-func userInput() {
+func startRepl(cfg *config) {
 	
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -23,7 +23,7 @@ func userInput() {
 			errors.New("Unknown command:" + text)
 			continue
 		}
-		command.callback()
+		command.callback(cfg)
 		fmt.Print("pokedex > ")
 
 	}
