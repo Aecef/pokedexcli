@@ -2,12 +2,10 @@ package pokecache
 
 import (
 	"time"
-	"sync"
 )
 
 type Cache struct {
 	mapCache map[string]cacheEntry
-	mapMutex *sync.Mutex
 }
 
 type cacheEntry struct {
@@ -15,16 +13,15 @@ type cacheEntry struct {
 	data      []byte
 }
 
-func NewCache() Cache {
-	return Cache{
+func NewCache(interval time.Duration) Cache {
+	c := Cache{
 		mapCache: make(map[string]cacheEntry),
-		mapMutex: &sync.Mutex{},
 	}
+	go c.reapLoop(interval)
+	return c
 }
 
 func (c *Cache) Get(key string) ([]byte, bool) {
-	c.mapMutex.Lock()
-	defer c.mapMutex.Unlock()
 	entry, ok := c.mapCache[key]
 	if !ok {
 		return nil, false
@@ -33,10 +30,25 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 }
 
 func (c *Cache) Add(key string, data []byte) {
-	c.mapMutex.Lock()
-	defer c.mapMutex.Unlock()
 	c.mapCache[key] = cacheEntry{
 		createdAt: time.Now().UTC(),
 		data:      data,
+	}
+}
+
+func (c *Cache) reapLoop (interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	for range ticker.C {
+		c.reap(interval)
+	}
+}
+
+
+func (c *Cache) reap(interval time.Duration) {
+	conception := time.Now().UTC().Add(-interval)
+	for key, entry := range c.mapCache {
+		if entry.createdAt.Before(conception) {
+			delete(c.mapCache, key)
+		}
 	}
 }
