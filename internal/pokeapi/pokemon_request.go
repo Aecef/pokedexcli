@@ -19,7 +19,6 @@ func (c *Client) GetPokemon(name string) (PokemonResponse, error) {
 	
 	dat, ok := c.cache.Get(fullURL)
 	if ok {
-		fmt.Println("Cache hit!")
 		err = json.Unmarshal(dat, &pokemon)
 		if err != nil {
 			return PokemonResponse{}, err

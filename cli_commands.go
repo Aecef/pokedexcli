@@ -45,6 +45,11 @@ func getCommands() map[string]cliCommand {
 			description: "Attempts to catch the selected pokemon",
 			callback:    commandCatch,
 		},
+		"inspect": {
+			name:        "inspect <pokemon>",
+			description: "Displays information about the selected pokemon",
+			callback:    commandInspect,
+		},
 	}
 	return commands
 }
@@ -136,14 +141,51 @@ func commandCatch(cfg *config, args ...string) error {
 	}
 
 	baseXP := pokemon.BaseExperience
-	catchChance := rand.Intn(baseXP)
+	catchBase:= rand.Intn(baseXP)
+	fBaseXP := float64(baseXP)
+	catchdDifficulty := 0.5 + (0.15 * (fBaseXP/100))
+	catchChance := float64(catchBase) / fBaseXP
+
 	fmt.Printf("Throwing a pokeball at %s...\n", pokemon.Name)
-	if float64(catchChance) > float64(baseXP) / 2  {
+	fmt.Printf("%.2f and you needed at least %.2f\n", catchChance, catchdDifficulty)
+	if catchChance >= catchdDifficulty ||  catchChance >= 0.99   {
 		fmt.Printf("You caught %s!\n", pokemon.Name)
 		cfg.pokebag.Add(pokemon)
 	} else {
 		fmt.Printf("%s broke free!\n", pokemon.Name)
 	}
 	return nil
+}
 
+func commandInspect(cfg *config, args ...string) error {
+	targetPokemon := args[0]
+
+	pokemon, err := cfg.pokeapiClient.GetPokemon(targetPokemon)
+	if err != nil {
+		return err
+	}
+
+	_, ok := cfg.pokebag.Get(pokemon.Name)
+	if !ok {
+		fmt.Printf("You have not caught %s!\n", pokemon.Name)
+		return nil
+	}
+
+
+	fmt.Println("=======================================")
+	fmt.Printf("Pokemon: %s\n", pokemon.Name)
+	fmt.Println("=======================================")
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+	fmt.Printf("Stats:\n")
+	for _, s := range pokemon.Stats {
+		fmt.Printf(" - %s: %v\n", s.Stat.Name, s.BaseStat)
+	}
+	fmt.Printf("Types:\n")
+	for _, t := range pokemon.Types {
+		fmt.Printf(" - %s\n", t.Type.Name)
+	}
+	fmt.Println("=======================================")
+
+	return nil
 }
