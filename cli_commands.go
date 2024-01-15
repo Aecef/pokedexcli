@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"log"
+	"errors"
 )
 
 type cliCommand struct {
@@ -67,6 +68,9 @@ func commandMap(cfg *config) error {
 }
 
 func commandMapb(cfg *config) error {
+	if cfg.prevLocationURL == nil {
+		return errors.New("Youre on the first page")
+	}
 	resp, err := cfg.pokeapiClient.ListLocationAreas(cfg.prevLocationURL)
 	if err != nil {
 		log.Fatal(err)

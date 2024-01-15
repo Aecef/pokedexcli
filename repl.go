@@ -23,7 +23,11 @@ func startRepl(cfg *config) {
 			errors.New("Unknown command:" + text)
 			continue
 		}
-		command.callback(cfg)
+		err := command.callback(cfg)
+		if err != nil {
+			fmt.Println(err)
+		}
+
 		fmt.Print("pokedex > ")
 
 	}
