@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"bufio"
 	"errors"
+	"strings"
 )
-
 
 func startRepl(cfg *config) {
 	
@@ -15,15 +15,21 @@ func startRepl(cfg *config) {
 	fmt.Print("pokedex > ")
 	for scanner.Scan() {
 		text := scanner.Text()
-		if text == "" {
-			break
+		
+		cleaned := cleanInput(text)
+		commandName := cleaned[0]
+
+		args := []string{}
+		if len(cleaned) > 1 {
+			args = cleaned[1:]
 		}
-		command, ok := getCommands()[text]
+
+		command, ok := getCommands()[commandName]
 		if !ok {
-			errors.New("Unknown command:" + text)
+			errors.New("Unknown command:" + commandName)
 			continue
 		}
-		err := command.callback(cfg)
+		err := command.callback(cfg, args...)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -36,4 +42,11 @@ func startRepl(cfg *config) {
 		fmt.Println("Error:", err)
 	}
 
+}
+
+
+func cleanInput(input string) []string {
+	lowered := strings.ToLower(input)
+	words := strings.Fields(lowered)
+	return words
 }
