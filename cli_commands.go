@@ -50,6 +50,11 @@ func getCommands() map[string]cliCommand {
 			description: "Displays information about the selected pokemon",
 			callback:    commandInspect,
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Displays all pokemon in the pokebag",
+			callback:    commandPokedex,
+		},
 	}
 	return commands
 }
@@ -147,7 +152,7 @@ func commandCatch(cfg *config, args ...string) error {
 	catchChance := float64(catchBase) / fBaseXP
 
 	fmt.Printf("Throwing a pokeball at %s...\n", pokemon.Name)
-	fmt.Printf("%.2f and you needed at least %.2f\n", catchChance, catchdDifficulty)
+
 	if catchChance >= catchdDifficulty ||  catchChance >= 0.99   {
 		fmt.Printf("You caught %s!\n", pokemon.Name)
 		cfg.pokebag.Add(pokemon)
@@ -187,5 +192,16 @@ func commandInspect(cfg *config, args ...string) error {
 	}
 	fmt.Println("=======================================")
 
+	return nil
+}
+
+func commandPokedex(cfg *config, args ...string) error {
+	fmt.Println("=======================================")
+	fmt.Printf("Pokedex: \n")
+	fmt.Println("=======================================")
+	for _, pokemon := range cfg.pokebag.AllCaughtPokemon() {
+		fmt.Printf(" - %s\n", pokemon)
+	}
+	fmt.Println("=======================================")
 	return nil
 }

@@ -26,3 +26,11 @@ func (b *Pokebag) Get(name string) (pokeapi.PokemonResponse, bool) {
 	}
 	return pokemon, ok
 }
+
+func (b *Pokebag) AllCaughtPokemon() []string {
+	caught := []string{}
+	for _, pokemon := range b.pokemon {
+		caught = append(caught, pokemon.Name)
+	}
+	return caught
+}
